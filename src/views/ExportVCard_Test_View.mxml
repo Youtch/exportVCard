@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Created by François Gardien (FGSolutions)
+ 	Date : 2014 
+	License : GNU v2
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		title="Contact to VCF file"
+		
+		creationComplete="creationCompleteHandler(event)"
+>
+	
+	<fx:Script>
+	  <![CDATA[
+		  import com.FGSolutions.exportVCard.ExportVCard;
+		  
+		  import flash.utils.clearTimeout;
+		  import flash.utils.setTimeout;
+		  
+		  import mx.collections.ArrayCollection;
+
+		protected function creationCompleteHandler(event:Event):void
+		{
+			btnTesterPeoples.addEventListener(MouseEvent.CLICK, exportVCF);
+			btnTesterOrg.addEventListener(MouseEvent.CLICK, exportVCF);
+		}
+		
+		// Type 4 into this constant to get the VCard with the v4.0 specification if you need it !
+		const  VCARD_FORMAT:uint=2; // for v2.1 specification  
+		
+		[Bindable] 
+		protected var messageResult:String = ""; 	
+		protected var myExportVCard:ExportVCard;
+		protected var timer:uint;
+		protected function exportVCF(e:MouseEvent)
+		{	
+			var acContacts = new ArrayCollection;
+			// Peoples example :
+			if(e.currentTarget.id=="btnTesterPeoples"){
+				acContacts.addItem({"professional":false, "name":"Martin", "firstname":"Carole", "address":"rue de la fripe", "postalCode":"17000", "city":"La Rochelle", "region":"", "homePhone":"0511001100", "gsm":"0611001100", "email":"myemail@yahoo.fr"});
+				acContacts.addItem({"professional":false, "name":"Schiffer", "firstname":"Claudia", "address":"rue des albatros", "postalCode":"17440", "city":"La Rochelle", "region":"Region", "homePhone":"0511001101", "gsm":"0611001101", "email":"cschiffer@yahoo.email.fr"});
+				acContacts.addItem({"professional":false, "name":"Rostand", "firstname":"Pascal", "address":"rue des busards", "postalCode":"22000", "city":"Bayonne", "region":"", "homePhone":"0522002200", "gsm":"0622002200", "email":"email@email.fr"});
+			}
+			// Organizations example :
+			if(e.currentTarget.id=="btnTesterOrg"){
+				acContacts.addItem({"professional":true, "name":"FGSolutions", "address":"adresse3", "postalCode":"33000", "city":"Bordeaux", "region":"Region", "workPhone":"0533003300", "gsm":"0633003300", "email":"email@email.fr"});
+				acContacts.addItem({"professional":true, "name":"Google", "address":"Mountain View", "postalCode":"00000", "city":"San Francisco", "region":"California", "workPhone":"110544004400", "gsm":"100644004400", "email":"thedirector@gmail.fr"});
+				acContacts.addItem({"professional":true, "name":"Microsoft", "address":"----", "postalCode":"00000", "city":"Redmond", "region":"-----", "workPhone":"110555005500", "gsm":"100655005500", "email":"Imdirector@microsoft.fr"});
+			}
+
+			myExportVCard = new ExportVCard;
+			if(myExportVCard.init(acContacts, VCARD_FORMAT)){
+				// Start simulating event dispatching
+				timer = setTimeout(waitingForFile, 100);
+			}
+			else
+				messageResult = "Error :"+myExportVCard.strErrorPartagerFichierVCF;
+		}
+		  
+		 protected function waitingForFile()
+		 {
+			if(myExportVCard.flagFileVCFCreated==true){
+			// Stop simulating event dispatching : detecting changing of the flag state
+				clearTimeout(timer);
+				if(myExportVCard.strIOError!="")
+					messageResult = myExportVCard.strIOError;
+				else
+					messageResult = "Success : "+myExportVCard.debugAcContactsLength.toString()+" contacts exported to '"+myExportVCard.fileDestination.nativePath+"' !";
+			}
+		 }
+	  ]]>
+	</fx:Script>
+	<s:VGroup horizontalCenter="0" verticalAlign="middle" horizontalAlign="center" width="100%">		
+		
+		<s:Button id="btnTesterPeoples" label="Export some peoples"/>
+		<s:Button id="btnTesterOrg" label="Export some organizations"/>
+		
+		<s:Spacer height="50"/>
+		<s:Label text="{messageResult}" horizontalCenter="0" width="100%"/>
+		
+		<s:Spacer height="200"/>
+		<s:Label text="AS3 code by FGSolutions" fontWeight="bold"/>
+	</s:VGroup>
+</s:View>
